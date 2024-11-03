@@ -1,35 +1,103 @@
 <template>
   <div id="app">
-    <!-- Barra de navegación con enlaces a diferentes rutas -->
-    <nav>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/addtask">Agregar Tarea</router-link> 
+    <nav class="navbar navbar-expand-lg bg-black">
+      <div class="container">
+        <router-link class="navbar-brand d-flex align-items-center" to="/">
+          <img src="@/assets/logo.png" alt="Vue logo" width="30" height="30" class="d-inline-block align-top me-2" />
+          GESTOR DE TAREAS
+        </router-link>
+
+        <button
+          type="button"
+          @click="toggleNavbar"
+          aria-controls="navbarNav"
+          :aria-expanded="!isNavbarCollapsed"
+          aria-label="Toggle navigation"
+          class="navbar-toggler"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div :class="['collapse navbar-collapse', { show: !isNavbarCollapsed }]" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <router-link class="nav-link text-white d-flex align-items-center" to="/addtask">
+                <i class="bi bi-plus-circle me-2"></i>Añadir tarea
+              </router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white d-flex align-items-center" to="/tasklist">
+                <i class="bi bi-card-checklist me-2"></i>Lista de tareas
+              </router-link>
+            </li>
+            <li class="nav-item">
+              <router-link class="nav-link text-white d-flex align-items-center" to="/combined">
+                <i class="bi bi-bag-check me-2"></i>Vista combinada
+              </router-link>
+            </li>
+          </ul>
+        </div>
+      </div>
     </nav>
-    <!-- Aquí se cargará el componente correspondiente a la ruta seleccionada -->
-    <router-view/>
+    <router-view :tasks="tasks" @add-task="addTask" @delete-task="deleteTask" />
   </div>
 </template>
 
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      isNavbarCollapsed: true,
+      tasks: [],
+    };
+  },
+  methods: {
+    toggleNavbar() {
+      this.isNavbarCollapsed = !this.isNavbarCollapsed;
+    },
+    addTask(newTask) {
+      this.tasks.unshift(newTask); 
+    },
+    deleteTask(taskId) {
+      this.tasks = this.tasks.filter(task => task.id !== taskId);
+    },
+    fetchTasks() {
+      axios
+        .get("https://dummyjson.com/todos")
+        .then((response) => {
+          this.tasks = response.data.todos.map(task => ({
+            ...task,
+            completed: task.completed || false,
+          }));
+        })
+        .catch((error) => {
+          console.error("Error fetching tasks:", error);
+        });
+    },
+  },
+  created() {
+    this.fetchTasks(); 
+  },
+};
+</script>
+
 <style>
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Roboto', sans-serif; 
   text-align: center;
-  color: #2c3e50;
 }
 
-nav {
-  padding: 30px;
+.navbar {
+  margin-bottom: 20px; 
 }
 
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
+.navbar-toggler {
+  border: none;
 }
 
-nav a.router-link-exact-active {
-  color: #42b983;
+.navbar-toggler-icon {
+  background-color: #97ffd7; 
 }
 </style>

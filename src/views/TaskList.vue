@@ -1,16 +1,15 @@
 <template>
-    <div>
-        <h1>Lista de Tareas</h1>
-        <button @click="fetchTasks">Cargar Tareas</button>
-        <div v-if="tasks.length > 0">
-            <div v-for="task in tasks" :key="task.id">
-                <div>
-                    <h5 :style="{ textDecoration: task.completed ? 'line-through' : 'none' }">{{ task.todo }}</h5>
-                    <span>{{ task.completed ? 'Completada' : 'Pendiente' }}</span>
-                    <button @click="toggleTaskCompletion(task)">
-                        {{ task.completed ? 'Desmarcar' : 'Completar' }}
-                    </button>
-                    <button @click="deleteTask(task)">Eliminar</button>
+    <div class="container mt-4">
+        <h1>Lista de tareas</h1>
+        <button @click="fetchTasks" class="btn btn-warning mb-3">
+            <i class="bi bi-eye me-2"></i><strong>Ver Tareas</strong>
+        </button>
+        <div v-if="showTasks" class="row">
+            <div class="col-12 mb-4" v-for="task in tasks" :key="task.id">
+                <div class="task-card">
+                    <TodoItem :title="task.todo" :completed="task.completed"
+                        @toggle-completion="toggleTaskCompletion(task)"
+                        @delTodo="deleteTask(task.id)" />
                 </div>
             </div>
         </div>
@@ -18,35 +17,54 @@
 </template>
 
 <script>
+import TodoItem from "@/components/TodoItem.vue";
+import axios from "axios";
+
 export default {
-    name: "TaskList",
+    props: ['tasks'],
+    components: { TodoItem },
     data() {
         return {
-            tasks: [], // Almacenamiento local de las tareas traídas de la API
+            showTasks: false,
         };
     },
     methods: {
-        // Llamada para obtener las tareas desde la API externa
+       
         fetchTasks() {
-            // Aquí deberían realizar la solicitud a la API usando axios o fetch.
-            // La URL que usaremos es: https://dummyjson.com/todos
-
-            // Sugerencia: Intentar implementarlo con axios o fetch
+            axios
+                .get("https://dummyjson.com/todos")
+                .then((response) => {
+                    this.$emit('update:tasks', response.data.todos); 
+                    this.showTasks = true; 
+                })
+                .catch((error) => {
+                    console.error("Error fetching tasks:", error);
+                });
         },
 
-        // Cambiar el estado de una tarea (completada/no completada)
+        
         toggleTaskCompletion(task) {
             task.completed = !task.completed;
         },
 
-        // Eliminar la tarea seleccionada
-        deleteTask(task) {
-            this.tasks = this.tasks.filter((t) => t.id !== task.id);
+        
+        deleteTask(taskId) {
+            this.$emit('delete-task', taskId); 
         },
     },
 };
 </script>
 
 <style scoped>
-/* Aquí pueden experimentar con estilos de tu preferencia */
+.container {
+    max-width: 800px;
+}
+
+.task-card {
+    background-color: #f1ff70;
+    color: #000000; 
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
 </style>
